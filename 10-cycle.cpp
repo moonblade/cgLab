@@ -61,8 +61,6 @@ public:
     Wheel a,b;
     Point translate;
     float rotation;
-    // to know when rotation val was changed
-    bool rotationChanged;
 
     // Where the cycle should move to
     vector<Point> path;
@@ -110,12 +108,7 @@ public:
             translate.y-=k;
         
         // find rot angle by inverse tan of path and current position
-        float temp = atan2(path[pathNow].y - path[pathNow-1].y, path[pathNow].x - path[pathNow-1].x);
-        if(temp!=rotation)
-        {
-            rotation=temp;
-            rotationChanged=true;
-        }
+        rotation = atan2(path[pathNow].y - path[pathNow-1].y, path[pathNow].x - path[pathNow-1].x);
 
         // if you reach the end, go to next two points
         if(currentPosition.x == path[pathNow].x)
@@ -131,14 +124,10 @@ public:
         // Clear previous screen
         glColor3f(0,0,0);
         
-        if(rotationChanged)
-        {
-            rotationChanged=false;
-            cout<<rotation<<endl;
-            glTranslatef(currentPosition.x, currentPosition.y, 0);
-            glRotatef(rotation,0,0,1);
-            glTranslatef(-currentPosition.x, -currentPosition.y, 0);
-        }
+        glPushMatrix();
+        glTranslatef(currentPosition.x, currentPosition.y, 0);
+        glRotatef(rotation * 180 / pi,0,0,1);
+        glTranslatef(-currentPosition.x, -currentPosition.y, 0);
 
         a.draw(translate);
         b.draw(translate);
@@ -148,7 +137,7 @@ public:
                 glVertex2f(body[i].x + translate.x, body[i].y + translate.y);
             }
         glEnd();
-
+        glPopMatrix();
         glFlush();
     }
 }cycle;
