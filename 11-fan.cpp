@@ -5,19 +5,21 @@
 #define pi 3.14
 using namespace std;
 
-
+// Point class, for x and y
 struct Point
 {
     int x, y;
     Point(int a=0, int b=0){x=a; y=b;}
 };
 
+// To get points on fan, instead of finding the points by hand, angle and radius to points
 Point toRadial(int radius, float angle)
 {
     angle = angle * pi / 180;
     return Point(radius*cos(angle), radius*sin(angle));
 }
 
+// Fan class, has body of fan and speed to rotate in
 class Fan
 {
 public:
@@ -42,6 +44,7 @@ public:
 
     void draw()
     {
+        // Clear previous screen, rotatef rotates the screen each time draw is done
         glClear(GL_COLOR_BUFFER_BIT);
         glRotatef(speed,0,0,1);
         glColor3f(0,0,0);
@@ -55,6 +58,7 @@ public:
     }
 }fan;
 
+// to change speed 0-9
 void keyboard(unsigned char c, int x, int y)
 {
     if(c>='0'&& c<='9')
@@ -69,13 +73,13 @@ void idle(int)
 {
     fan.draw();
     // glutTimerFunc(delay, function, parameter to pass as int)
-    glutTimerFunc(40, idle, 1);
+    glutTimerFunc(20, idle, 1);
 }
 
+
+// Dummy display
 void display()
 {
-    glClear(GL_COLOR_BUFFER_BIT);
-    fan.draw();
 }
 
 void init()
