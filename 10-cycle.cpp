@@ -28,7 +28,7 @@ public:
     void draw(Point translate)
     {
         //simple way to get how much the wheel has rotated, - is the clockwise direction
-        int rotation=-translate.x - translate.y; 
+        int rotation=-translate.x; 
         // push matrix is used so that only the wheel is rotated and none of the others are affected
         // push means save what all have been drawn till now so that they wont be affected.
         glPushMatrix();
