@@ -82,7 +82,7 @@ class Polygon
     public:
     vector<Point> poly;
     Polygon(){
-        poly.push_back(Point(-10,-30));
+        poly.push_back(Point(-30,-10));
         poly.push_back(Point(180,20));
         poly.push_back(Point(180,20));
         poly.push_back(Point(230,100));
