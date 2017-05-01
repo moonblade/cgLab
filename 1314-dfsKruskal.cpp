@@ -3,12 +3,14 @@
 #include<set>
 #include<math.h>
 #include<unistd.h>
+#include<queue>
 #include<GL/glut.h>
 #define white 1
 #define grey 2
 #define black 3
 #define rad 20
 #define sleepTime 1000*1000
+#define max 100
 using namespace std;
 class Point
 {
@@ -66,7 +68,9 @@ void line(Point one, Point two)
 class Node
 {  
     public:
+    bool visited;
     int state;
+    int dist;
     int id;
     Point position;
     void draw()
@@ -82,6 +86,8 @@ class Node
     Node(int i, Point pos)
     {
         id = i;
+        visited=false;
+        dist=max;
         position= pos;
         state=white;
     }
@@ -127,7 +133,6 @@ class Graph
     public:
     vector<Node> v;
     vector<Edge> e;
-    set<int> visitedNodes;
     Graph(){
         int i=0;
         v.push_back(Node(i++, Point(-200, 0)));
@@ -139,25 +144,24 @@ class Graph
         v.push_back(Node(i++, Point(200, -200)));
         v.push_back(Node(i++, Point(-200, -200)));
 
-        e.push_back(Edge(&v[1], &v[2],1,2,  200));
-        e.push_back(Edge(&v[0], &v[1],0,1,  200));
-        e.push_back(Edge(&v[1], &v[3],1,3,  200));
-        e.push_back(Edge(&v[2], &v[4],2,4,  200));
-        e.push_back(Edge(&v[2], &v[6],2,6,  200));
-        e.push_back(Edge(&v[5], &v[6],5,6,  200));
-        e.push_back(Edge(&v[1], &v[5],1,5,  200));
+        e.push_back(Edge(&v[1], &v[2],1,2,  23));
+        e.push_back(Edge(&v[0], &v[1],0,1,  31));
+        e.push_back(Edge(&v[1], &v[3],1,3,  24));
+        e.push_back(Edge(&v[2], &v[4],2,4,  18));
+        e.push_back(Edge(&v[2], &v[6],2,6,  5));
+        e.push_back(Edge(&v[5], &v[6],5,6,  9));
+        e.push_back(Edge(&v[1], &v[5],1,5,  3));
+        e.push_back(Edge(&v[5], &v[7],5,7,  1));
+        e.push_back(Edge(&v[0], &v[7],0,7,  10));
+        e.push_back(Edge(&v[3], &v[4],3,4,  4));
     }
 
-    bool visited(int i)
-    {
-        return visitedNodes.find(i)!=visitedNodes.end();
-    }
     void draw()
     {
         glClear(GL_COLOR_BUFFER_BIT);
         for(int i=0; i< v.size(); ++i)
-            v[i].draw();
         {
+            v[i].draw();
         }
         for(int i=0; i< e.size(); ++i)
         {
@@ -188,21 +192,19 @@ class Graph
 
     void dfs(int n)
     {
-        if(visited(n))
+        if(v[n].visited)
             return;
-        visitedNodes.insert(n);
+        v[n].visited=true;
         v[n].state=grey;
         draw();
         usleep(sleepTime);
         vector<int> neigh = neighbours(n); 
         for (int i=0; i<neigh.size(); ++i)
         {
-            int edge = findEdge(n, neigh[i]);
-            e[edge].state=grey;
+            // int edge = findEdge(n, neigh[i]);
+            // e[edge].state=grey;
             dfs(neigh[i]);
-            draw();
         }
-        // usleep(sleepTime);
         v[n].state=black;
         draw();
         usleep(sleepTime);
@@ -216,12 +218,101 @@ class Graph
         }
     }
 
+    void bfs(int n){
+        if(v[n].visited)
+            return;
+        v[n].visited=true;
+        queue<int> Q;
+        Q.push(n);
+        while(!Q.empty())
+        {
+
+        }
+    }
+
+    // For kruskal
+    vector<int> A;
+    set<set<int> > S;
+    vector<Edge> sortedEdgeList;
+    set<set<int> >::iterator findRep(int node)
+    {
+        for(auto it = S.begin(); it!=S.end(); ++it)
+        {
+            int rep = *(it->begin());
+            for(auto i= it->begin(); i!=it->end(); ++ i)
+            {
+                if ((*i)==node)
+                    return it;
+            }
+        }
+    }
+
+    void kruskal()
+    {
+        for(int i=0; i<v.size();++i)
+        {
+            // makeset i
+            set<int> s;
+            s.insert(i);
+            S.insert(s);
+        }
+        // sort edges
+        vector<Edge> temp = e;
+        int size=temp.size();
+        for(int i=0;i<size; ++i)
+        {
+            int min=0;
+            for(int j=0;j<temp.size();++j)
+            {
+                if(temp[j].wt<temp[min].wt)
+                    min=j;
+            }
+            sortedEdgeList.push_back(temp[min]);
+            temp.erase(temp.begin()+min);
+        }
+        // for each, if not in same set, union
+        for(int i=0;i<sortedEdgeList.size();++i)
+        {
+            Edge edge= sortedEdgeList[i];
+            set<set<int> >::iterator one = findRep(edge.ui);
+            set<set<int> >::iterator two = findRep(edge.vi);
+            if(one!=two)
+            {
+                // merge sets and push
+                set<int> s;
+                for(auto it = one->begin(); it!=one->end();++it)
+                {
+                    s.insert(*it);
+                }
+                
+                for(auto it = two->begin(); it!=two->end();++it)
+                {
+                    s.insert(*it);
+                }
+
+                S.insert(s);
+                S.erase(one);
+                S.erase(two);
+                int u = edge.ui;
+                int v = edge.vi;
+                A.push_back(findEdge(u,v));
+                e[findEdge(u,v)].state=grey;
+                draw();
+                usleep(sleepTime);
+            }
+        }
+        for(int i=0;i<A.size();++i)
+        {
+            e[A[i]].state=grey;
+        }
+        draw();
+    }
 
 }g;
 
 void display()
 {
-    g.dfsWrapper();
+    g.kruskal();
 }
 
 int main(int argc, char *argv[])
