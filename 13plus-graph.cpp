@@ -4,6 +4,7 @@
 #include<math.h>
 #include<unistd.h>
 #include<queue>
+#include<algorithm>
 #include<GL/glut.h>
 #define white 1
 #define grey 2
@@ -71,6 +72,7 @@ class Node
     bool visited;
     int state;
     int dist;
+    int prev;
     int id;
     Point position;
     void draw()
@@ -90,7 +92,38 @@ class Node
         dist=max;
         position= pos;
         state=white;
+        prev=-1;
     }
+};
+
+// for djikstra
+class orderedQueue
+{
+    public:
+        vector<Node *> q;
+        void add(Node *n)
+        {
+            if(find(q.begin(), q.end(), n) == q.end())
+                q.push_back(n);
+        }
+        Node* get()
+        {
+            int min=0;
+            for(int i=0;i<q.size();++i)
+            {
+                if(q[i]->dist<q[min]->dist)
+                {
+                    min=i;
+                }
+            }
+            Node *ret = q[min];
+            q.erase(q.begin()+min);
+            return ret;
+        }
+        bool empty()
+        {
+            return q.size()<=0;
+        }
 };
 
 class Edge
@@ -177,6 +210,7 @@ class Graph
             if(e[i].has(u) && e[i].has(v))
                 return i;
         }
+        return -1;
     }
 
     vector<int> neighbours(int node)
@@ -308,11 +342,54 @@ class Graph
         draw();
     }
 
+    // djikstra
+    void djikstra(int k)
+    {
+        orderedQueue q;
+        q.add(&v[k]);
+
+        while(!q.empty())
+        {
+            Node *n = q.get();
+            n->dist = 0;
+            n->state = grey;
+            draw();
+            usleep(sleepTime);
+            vector<int> neigh = neighbours(n->id);
+            for(int i=0;i<neigh.size();++i)
+            {
+                if(!v[neigh[i]].visited)
+                {
+                    int edge = findEdge(n->id, neigh[i]);
+                    if(v[neigh[i]].dist > e[edge].wt + n->dist)
+                    {
+                        int oldEdge = findEdge(v[neigh[i]].prev, neigh[i]);
+                        if(oldEdge!=-1)
+                        {
+                            cout<<"here";
+                            e[oldEdge].state=white;
+                        }
+                        v[neigh[i]].dist = e[edge].wt + n->dist;
+                        v[neigh[i]].prev = n->id;
+                        e[edge].state=grey;
+                        draw();
+                        usleep(sleepTime);
+                    }
+                    q.add(&v[neigh[i]]);
+                }
+            }
+            n->visited=true;
+            n->state=black;
+            draw();
+            usleep(sleepTime);
+        }
+    }
+
 }g;
 
 void display()
 {
-    g.kruskal();
+    g.djikstra(0);
 }
 
 int main(int argc, char *argv[])
