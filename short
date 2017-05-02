@@ -1,0 +1,23 @@
+bresLine
+p = 2dx - dy
+if (p<0)
+    p+=2dy
+else
+    y+=inc
+    p+=2(dy-dx)
+
+midCircle
+p = 1-r
+if(p<0)
+    p+=2x+1
+else
+    y-=1
+    p+=2(x-y)+1
+
+bresCirlce
+p = 3-2r
+if(p<0)
+    p+=4x+6
+else
+    y-=1
+    p+=4(x-y) + 10
