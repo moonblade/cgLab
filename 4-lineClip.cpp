@@ -50,10 +50,48 @@ class Window
         ret<<=1;
         if(p.x<0)
             ret|=1;
-        ret<<=1;
+        cout<<"outcode "<<p.x<<" "<<p.y<<" "<<ret<<endl;
         return ret;
     }
 
+    int edge(int outcode)
+    {
+        cout<<outcode<<endl;
+        if(outcode&8)
+            return 2;
+        if(outcode&4)
+            return 0;
+        if(outcode&2)
+            return 1;
+        if(outcode&1)
+            return 3;
+    }
+
+    Point findIntersection(Point p, Point q, int edge)
+    {
+        Point r;
+        // (r.y - p.y) /  (q.y - p.y) = (r.x - p.x) / (q.x - p.x)
+        switch(edge)
+        {
+            case 0:
+                r.y = 0;
+                r.x = (r.y - p.y) * (q.x - p.x) / (q.y - p.y) + p.x;
+                return r;
+            case 1:
+                r.x = 200;
+                r.y = (r.x - p.x) * (q.y - p.y) / (q.x - p.x) + p.y;
+                return r;
+            case 2:
+                r.y = 200;
+                r.x = (r.y - p.y) * (q.x - p.x) / (q.y - p.y) + p.x;
+                return r;
+            case 3:
+                r.x = 0;
+                r.y = (r.x - p.x) * (q.y - p.y) / (q.x - p.x) + p.y;
+                return r;
+
+        }
+    }
 }w;
 
 class Line
@@ -61,7 +99,7 @@ class Line
     public:
 
     Point a, b;
-    Line(Point k = Point(10, 30), Point l=Point(230, 100))
+    Line(Point k = Point(-10, -30), Point l=Point(230, 100))
     {
         a = k;
         b = l;
@@ -94,17 +132,16 @@ class Line
         clip(a,b,w);
     }
 
+    vector<Point> clipped;
     void clip(Point a, Point b, Window w)
     {
         if(w.outcode(a)==0 && w.outcode(b)==0)
         {
-            cout<<"inside ";
-            cout<<a.x<<" "<<a.y<<" ";
-            cout<<b.x<<" "<<b.y<<endl;
-            draw(a,b);
+            clipped.push_back(a);
+            clipped.push_back(b);
         }
 
-        else if(w.outcode(a)&w.outcode(b)!=0)
+        else if(w.outcode(a)&w.outcode(b))
         {
             // discard
             cout<<a.x<<" "<<a.y<<endl;
@@ -115,14 +152,12 @@ class Line
         }
 
         else{
-            Point mid;
-            mid.x = (a.x + b.x)/2;
-            mid.y = (a.y + b.y)/2;
-            cout<<mid.x<<" "<<mid.y<<endl;
-            if(mid.x==a.x || mid.y==a.y)
-                return;
-            clip(a, mid, w);
-            clip(mid, b, w);
+            Point newa, newb;
+            newa = w.outcode(a)?w.findIntersection(a,b,w.edge(w.outcode(a))):a;
+            newb = w.outcode(b)?w.findIntersection(a,b,w.edge(w.outcode(b))):b;
+            cout<<newa.x<<" "<<newa.y<<endl;
+            cout<<newb.x<<" "<<newb.y<<endl;
+            clip(newa, newb, w);
         }
     }
 }l;
@@ -131,11 +166,19 @@ void idle()
     w.draw();
     l.draw();
     l.clip(w);
+    glColor3f(0,0,1);
+    glBegin(GL_LINE_LOOP);
+    for(int i=0;i<l.clipped.size();++i)
+    {
+        glVertex2f(l.clipped[i].x, l.clipped[i].y);
+        cout<<l.clipped[i].x<<" "<< l.clipped[i].y<<endl;
+    }
+    glEnd();
+    glFlush();
 }
 
 void keyboard(unsigned char c, int x, int y)
 {
-    l.clip(w);
 }
 
 int main(int argc, char *argv[])
