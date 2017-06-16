@@ -134,7 +134,7 @@ void step(){
 		d[i].draw();
 		d[i].step();
 	}
-	usleep(30000);
+	usleep(10000);
 	glFlush();
 }
 int main(int argc, char *argv[])

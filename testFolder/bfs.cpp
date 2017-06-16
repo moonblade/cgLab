@@ -96,6 +96,8 @@ class Graph{
     public:
     vector<Node> nodes;
     vector<Edge> edges;
+    vector<int> queue;
+    int curQ=0;
     Graph(){
         int i=0;
         nodes.push_back(Node(i++,Point(0,0)));
@@ -114,11 +116,14 @@ class Graph{
         edges.push_back(Edge(1,4,1));
     }
 
+    int putGrey(int i)
+    {
+        queue.push_back(i);
+    }
     int getGrey(){
-        for(int i=0;i<nodes.size();++i)
-            if(nodes[i].state==grey)
-                return i;
-        return -1;
+        if(curQ==nodes.size())
+            return -1;
+        else return queue[curQ++];
     }
 
     void draw(){
@@ -136,6 +141,7 @@ class Graph{
     void bfs()
     {
         nodes[0].state=grey;
+        putGrey(0);
         draw();
         usleep(1000000);
         int p;
@@ -150,6 +156,7 @@ class Graph{
                     {
                         edges[i].state=grey;
                         nodes[other].state=grey;
+                        putGrey(other);
                         draw();
                         usleep(1000000);
                     }
