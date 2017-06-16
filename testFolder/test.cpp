@@ -1,154 +1,196 @@
-#include "iostream"
-#include "GL/glut.h"
-#include "vector"
-#include "unistd.h"
-#include "math.h"
-#include "stdlib.h"
+// DOES NOT WORK
+#include<iostream>
+#include<vector>
+#include<unistd.h>
+#include<GL/glut.h>
 using namespace std;
 
-class Point{
-public:
-	int x,y;
-	Point(){}
-	Point(int a, int b){
-		x = a;
-		y = b;
-	}
+struct Point
+{
+    int x, y;
+    Point(int a=0, int b=0)
+    {
+        x=a; y=b;
+    }
 };
 
-int xtrans=0;
-class Rain{
-public:
-	int i=99;
-	int transy[100];
-	Point rain[100];
-	void drawLine(int rx,int ry){
-		glColor3f(1,1,1);
-		glBegin(GL_LINES);
-		glVertex2f(rx,ry);
-		glVertex2f(rx,ry+10);
-		glEnd();
-		glFlush();
-	}
-	void initRain(){
-		for(;i>=0; i--){
-			int randx = random()%500;
-			int randy = random()%500;
-			rain[i].x = randx;
-			rain[i].y = randy;
-			// drawLine(randx,randy);
-		}
-	}
-	void drawRain(){
-		for(int i=0; i<100; i++)
-			drawLine(rain[i].x,rain[i].y+transy[i]);
-	}
-	void step(){
-		for(int i=0; i<100; i++)
-			transy[i] -=1;
-		// transy %= 500;
-		glClear(GL_COLOR_BUFFER_BIT);
-		for(int i=0; i<100; i++){
-			if((rain[i].y+transy[i])<=0){
-				// cout<<"here";
-				transy[i]=500;
-			}
-		}
-	}
-};
- Rain r;
- class Person{
- public:
- 	vector<Point>body;
- 	int transx=0;
- 	Person(){
- 		body.push_back(Point(0,0));
- 		body.push_back(Point(30,30));
- 		body.push_back(Point(60,0));
- 		body.push_back(Point(30,30));
- 		body.push_back(Point(30,70));
- 		body.push_back(Point(60,40));
- 		body.push_back(Point(90,70));
- 		body.push_back(Point(90,150));
- 		body.push_back(Point(90,70));
- 		body.push_back(Point(60,40));
- 		body.push_back(Point(30,70));
- 		body.push_back(Point(0,40));
- 		body.push_back(Point(30,70));
- 		body.push_back(Point(30,90));
- 	}
- 	void drawPerson(){
- 		glColor3f(0,0,1);
- 		glBegin(GL_LINE_STRIP);
- 		for(int i=0; i<body.size(); i++)
- 			glVertex2f(body[i].x+transx,body[i].y);
- 		glEnd();
- 		glBegin(GL_LINE_LOOP);
- 		for(int i=0; i<=360; i++)
- 			glVertex2f(30+25*cos(i*3.14/180)+transx,115+25*sin(i*3.14/180));
- 		glEnd();
- 		glBegin(GL_LINE_LOOP);
- 		for (int i = 0; i <=180; ++i)
- 		{
- 			glVertex2f(90+70*cos(i*3.14/180)+transx,150+70*sin(i*3.14/180));
- 		}
- 		glEnd();
- 		glFlush();
- 	}
+class Window
+{
+    public:
+    vector<Point> w;
+    Window()
+    {
+        w.push_back(Point(0, 0));
+        w.push_back(Point(200, 0));
+        w.push_back(Point(200, 200));
+        w.push_back(Point(0, 200));
+    }
 
- 	void step(){
- 		transx+=1;
- 		transx%=500;
- 		glClear(GL_COLOR_BUFFER_BIT);
- 	}
- 	void drawBound(){
- 		for(int i=0; i<100; i++){
-            cout<<r.rain[i].x<<" ";
-            cout<<r.rain[i].y<<" ";
-            cout<<r.transy[i]<<" ";
-            cout<<r.rain[i].y+r.transy[i]<<" ";
+    void draw()
+    {
+        glColor3f(1,0,0);
+        glBegin(GL_LINE_LOOP);
+            for(int i=0;i<w.size();++i)
+                glVertex2f(w[i].x, w[i].y);
+        glEnd();
+        glFlush();
+    }
 
- 			cout<<(r.rain[i].x<=160+transx && r.rain[i].x>=20+transx)||(r.rain[i].y+r.transy[i]>=0 && r.rain[i].y+r.transy[i]<=150);
-             cout<<endl;
- 			if((r.rain[i].x<=160+transx && r.rain[i].x>=20+transx)&&(r.rain[i].y+r.transy[i]>=0 && r.rain[i].y+r.transy[i]<=150)){
- 				r.transy[i]=500;
- 			}
- 		}
-         cout<<endl;
- 	}
- };
- 
- 
- Person p;
- void idle(){
- 	p.drawPerson();
- 	r.drawRain();
- 	r.step();
- 	p.step();
- 	p.drawBound();
- 	// r.drawRain();
- }
- void timer(int){
- 	idle();
-	glutTimerFunc(40,timer,1);
+    int outcode(Point p)
+    {
+        int ret = 0;
+        if(p.y>200)
+            ret|=1;
+        ret<<=1;
+        if(p.y<0)
+            ret|=1;
+        ret<<=1;
+        if(p.x>200)
+            ret|=1;
+        ret<<=1;
+        if(p.x<0)
+            ret|=1;
+        cout<<"outcode "<<p.x<<" "<<p.y<<" "<<ret<<endl;
+        return ret;
+    }
 
- }
+    int edge(int outcode)
+    {
+        cout<<outcode<<endl;
+        if(outcode&8)
+            return 2;
+        if(outcode&4)
+            return 0;
+        if(outcode&2)
+            return 1;
+        if(outcode&1)
+            return 3;
+    }
 
- void display(){}
+    Point findIntersection(Point p, Point q, int edge)
+    {
+        Point r;
+        // (r.y - p.y) /  (q.y - p.y) = (r.x - p.x) / (q.x - p.x)
+        switch(edge)
+        {
+            case 0:
+                r.y = 0;
+                r.x = (r.y - p.y) * (q.x - p.x) / (q.y - p.y) + p.x;
+                return r;
+            case 1:
+                r.x = 200;
+                r.y = (r.x - p.x) * (q.y - p.y) / (q.x - p.x) + p.y;
+                return r;
+            case 2:
+                r.y = 200;
+                r.x = (r.y - p.y) * (q.x - p.x) / (q.y - p.y) + p.x;
+                return r;
+            case 3:
+                r.x = 0;
+                r.y = (r.x - p.x) * (q.y - p.y) / (q.x - p.x) + p.y;
+                return r;
+
+        }
+    }
+}w;
+
+class Line
+{
+    public:
+
+    Point a, b;
+    Line(Point k = Point(-10, -30), Point l=Point(230, 100))
+    {
+        a = k;
+        b = l;
+    }
+
+    void draw()
+    {
+        glColor3f(0,1,0);
+        glBegin(GL_LINES);
+            glVertex2f(a.x, a.y);
+            glVertex2f(b.x, b.y);
+        glEnd;
+        glFlush();
+    }
+
+    void draw(Point p, Point q)
+    {
+        cout<<p.x<<" "<<p.y<<" ";
+        cout<<q.x<<" "<<q.y<<endl;
+        glColor3f(1,0,0);
+        glBegin(GL_LINES);
+            glVertex2f(p.x, p.y);
+            glVertex2f(q.x, q.y);
+        glEnd;
+        glFlush();
+    }
+
+    void clip(Window w)
+    {
+        clip(a,b,w);
+    }
+
+    vector<Point> clipped;
+    void clip(Point a, Point b, Window w)
+    {
+        if(w.outcode(a)==0 && w.outcode(b)==0)
+        {
+            clipped.push_back(a);
+            clipped.push_back(b);
+        }
+
+        else if(w.outcode(a)&w.outcode(b))
+        {
+            // discard
+            cout<<a.x<<" "<<a.y<<endl;
+            cout<<b.x<<" "<<b.y<<endl;
+            cout<<w.outcode(a)<<" "<<w.outcode(b)<<endl;
+            cout<<"here"<<endl;
+            usleep(1000000);
+        }
+
+        else{
+            Point newa, newb;
+            newa = w.outcode(a)?w.findIntersection(a,b,w.edge(w.outcode(a))):a;
+            newb = w.outcode(b)?w.findIntersection(a,b,w.edge(w.outcode(b))):b;
+            cout<<newa.x<<" "<<newa.y<<endl;
+            cout<<newb.x<<" "<<newb.y<<endl;
+            clip(newa, newb, w);
+        }
+    }
+}l;
+void idle()
+{
+    w.draw();
+    l.draw();
+    l.clip(w);
+    glColor3f(0,0,1);
+    glBegin(GL_LINE_LOOP);
+    for(int i=0;i<l.clipped.size();++i)
+    {
+        glVertex2f(l.clipped[i].x, l.clipped[i].y);
+        cout<<l.clipped[i].x<<" "<< l.clipped[i].y<<endl;
+    }
+    glEnd();
+    glFlush();
+}
+
+void keyboard(unsigned char c, int x, int y)
+{
+}
+
 int main(int argc, char *argv[])
 {
-	glutInit(&argc,argv);
-	glutCreateWindow("Window");
-	glutInitWindowSize(500,500);
-	glutInitWindowPosition(00,00);
-	gluOrtho2D(0,500,0,500);
-	glClearColor(0,0,0,1);
-	glClear(GL_COLOR_BUFFER_BIT);
- 	r.initRain();
- 	// p.bound();
-	glutDisplayFunc(display);
-	// glutKeyboardFunc(keyboard);
-	glutTimerFunc(40,timer,1);
-	glutMainLoop();
-	return 0;
+    glutInit(&argc, argv);
+    glutCreateWindow("lab");
+    glutInitWindowSize(500,500);
+    glClearColor(0,0,0,1);
+    glClear(GL_COLOR_BUFFER_BIT);
+    gluOrtho2D(-250, 250, -250, 250);
+    glutDisplayFunc(idle);
+    // glutIdleFunc(idle);
+    glutKeyboardFunc(keyboard);
+    glutMainLoop();
 }
