@@ -1,196 +1,142 @@
-// DOES NOT WORK
 #include<iostream>
-#include<vector>
-#include<unistd.h>
 #include<GL/glut.h>
+#include<math.h>
+#include<vector>
+#define w2 250
+#define white 0
+#define red 1
+#define blue 2
+#define rads 30
 using namespace std;
 
-struct Point
-{
-    int x, y;
-    Point(int a=0, int b=0)
-    {
-        x=a; y=b;
-    }
+
+class point {
+	public:
+		int x,y;
+		//point(){};
+		point(int a=0,int b=0){
+			x=a;
+			y=b;
+		}
+};
+void circle(point centre,int r){
+		glBegin(GL_LINE_STRIP);
+	for(int i=0;i<360;i++){
+		float theta=i*3.14/180;
+		glVertex2f(centre.x+r*cos(theta),centre.y+r*sin(theta));
+
+	}
+	glEnd();
+}
+
+void line(point a,point b){
+	glBegin(GL_LINES);
+	glVertex2f(a.x,a.y);
+	glVertex2f(b.x,b.y);
+	glEnd();
+}
+class node{
+public:
+	int id;
+	point position;
+	int state;
+
+	node(int i,point p){
+		id=i;
+		position=p;
+		state=white;
+	}
+
+	void draw(){
+		//glBegin()
+		switch(state){
+			case white:glColor3f(0,1,0);break;
+			case red:glColor3f(1,0,0);break;
+			case blue:glColor3f(0,0,1);break;
+		}
+		circle(position,rads);
+	}
+	bool visited(){
+		return state;
+	}
 };
 
-class Window
-{
-    public:
-    vector<Point> w;
-    Window()
-    {
-        w.push_back(Point(0, 0));
-        w.push_back(Point(200, 0));
-        w.push_back(Point(200, 200));
-        w.push_back(Point(0, 200));
-    }
+class edge{
+public:
+	int u,v,wt;
+	int state;
+	edge(int x,int y,int z){
+		u=x;
+		v=y;
+		wt=z;
+		state=white;
+	}
+	void draw(vector<node> nodes){
+		switch(state){
+			case white:glColor3f(1,1,1);break;
+			case red:glColor3f(1,0,0);break;
+			case blue:glColor3f(0,0,1);break;
+		}
+		line(nodes[u].position,nodes[v].position);
+	}
+	bool has(int node){
+		return u==node||v==node;
+		
+	}
+	bool other(int node){
+		if(u==node)
+			return v;
+		else return u;
+	}
+};
 
-    void draw()
-    {
-        glColor3f(1,0,0);
-        glBegin(GL_LINE_LOOP);
-            for(int i=0;i<w.size();++i)
-                glVertex2f(w[i].x, w[i].y);
-        glEnd();
-        glFlush();
-    }
+class graph{
+public:
+	vector<node>nodes;
+	vector<edge>edges;
+	graph(){
+		int i=0;
+		nodes.push_back(node(i++,point(0,0)));
+		nodes.push_back(node(i++,point(-50,-50)));
+		nodes.push_back(node(i++,point(-150,-150)));
+		nodes.push_back(node(i++,point(-75,-150)));
+		nodes.push_back(node(i++,point(50,-50)));
+		nodes.push_back(node(i++,point(25,-150)));
+		//edges.push_back(edge(0,1,0));
+		//edges.push_back(edge(1,2,0));
+		//edges.push_back(edge(1,3,0));
+	//	edges.push_back(edge(0,4,0));
+//		edges.push_back(edge(4,5,0));
+	}
+	void draw(){
+		for(int i=0;i<nodes.size();i++){
+			nodes[i].draw();
+		}
+		for(int i=0;i<edges.size();i++){
+			edges[i].draw(nodes);
+		}
+		glFlush();
 
-    int outcode(Point p)
-    {
-        int ret = 0;
-        if(p.y>200)
-            ret|=1;
-        ret<<=1;
-        if(p.y<0)
-            ret|=1;
-        ret<<=1;
-        if(p.x>200)
-            ret|=1;
-        ret<<=1;
-        if(p.x<0)
-            ret|=1;
-        cout<<"outcode "<<p.x<<" "<<p.y<<" "<<ret<<endl;
-        return ret;
-    }
+	}
+}g;
 
-    int edge(int outcode)
-    {
-        cout<<outcode<<endl;
-        if(outcode&8)
-            return 2;
-        if(outcode&4)
-            return 0;
-        if(outcode&2)
-            return 1;
-        if(outcode&1)
-            return 3;
-    }
-
-    Point findIntersection(Point p, Point q, int edge)
-    {
-        Point r;
-        // (r.y - p.y) /  (q.y - p.y) = (r.x - p.x) / (q.x - p.x)
-        switch(edge)
-        {
-            case 0:
-                r.y = 0;
-                r.x = (r.y - p.y) * (q.x - p.x) / (q.y - p.y) + p.x;
-                return r;
-            case 1:
-                r.x = 200;
-                r.y = (r.x - p.x) * (q.y - p.y) / (q.x - p.x) + p.y;
-                return r;
-            case 2:
-                r.y = 200;
-                r.x = (r.y - p.y) * (q.x - p.x) / (q.y - p.y) + p.x;
-                return r;
-            case 3:
-                r.x = 0;
-                r.y = (r.x - p.x) * (q.y - p.y) / (q.x - p.x) + p.y;
-                return r;
-
-        }
-    }
-}w;
-
-class Line
-{
-    public:
-
-    Point a, b;
-    Line(Point k = Point(-10, -30), Point l=Point(230, 100))
-    {
-        a = k;
-        b = l;
-    }
-
-    void draw()
-    {
-        glColor3f(0,1,0);
-        glBegin(GL_LINES);
-            glVertex2f(a.x, a.y);
-            glVertex2f(b.x, b.y);
-        glEnd;
-        glFlush();
-    }
-
-    void draw(Point p, Point q)
-    {
-        cout<<p.x<<" "<<p.y<<" ";
-        cout<<q.x<<" "<<q.y<<endl;
-        glColor3f(1,0,0);
-        glBegin(GL_LINES);
-            glVertex2f(p.x, p.y);
-            glVertex2f(q.x, q.y);
-        glEnd;
-        glFlush();
-    }
-
-    void clip(Window w)
-    {
-        clip(a,b,w);
-    }
-
-    vector<Point> clipped;
-    void clip(Point a, Point b, Window w)
-    {
-        if(w.outcode(a)==0 && w.outcode(b)==0)
-        {
-            clipped.push_back(a);
-            clipped.push_back(b);
-        }
-
-        else if(w.outcode(a)&w.outcode(b))
-        {
-            // discard
-            cout<<a.x<<" "<<a.y<<endl;
-            cout<<b.x<<" "<<b.y<<endl;
-            cout<<w.outcode(a)<<" "<<w.outcode(b)<<endl;
-            cout<<"here"<<endl;
-            usleep(1000000);
-        }
-
-        else{
-            Point newa, newb;
-            newa = w.outcode(a)?w.findIntersection(a,b,w.edge(w.outcode(a))):a;
-            newb = w.outcode(b)?w.findIntersection(a,b,w.edge(w.outcode(b))):b;
-            cout<<newa.x<<" "<<newa.y<<endl;
-            cout<<newb.x<<" "<<newb.y<<endl;
-            clip(newa, newb, w);
-        }
-    }
-}l;
-void idle()
-{
-    w.draw();
-    l.draw();
-    l.clip(w);
-    glColor3f(0,0,1);
-    glBegin(GL_LINE_LOOP);
-    for(int i=0;i<l.clipped.size();++i)
-    {
-        glVertex2f(l.clipped[i].x, l.clipped[i].y);
-        cout<<l.clipped[i].x<<" "<< l.clipped[i].y<<endl;
-    }
-    glEnd();
-    glFlush();
+void display(){
+	g.draw();
+	glFlush();
 }
 
-void keyboard(unsigned char c, int x, int y)
-{
+void init(){
+	glutCreateWindow("graph");
+	glutInitWindowSize(2*w2,2*w2);
+	gluOrtho2D(-w2,w2,-w2,w2);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glClearColor(0,0,0,1);
 }
 
-int main(int argc, char *argv[])
-{
-    glutInit(&argc, argv);
-    glutCreateWindow("lab");
-    glutInitWindowSize(500,500);
-    glClearColor(0,0,0,1);
-    glClear(GL_COLOR_BUFFER_BIT);
-    gluOrtho2D(-250, 250, -250, 250);
-    glutDisplayFunc(idle);
-    // glutIdleFunc(idle);
-    glutKeyboardFunc(keyboard);
-    glutMainLoop();
+int main(int argc,char** argv){
+	glutInit(&argc,argv);
+	init();
+	glutDisplayFunc(display);
+	glutMainLoop();
+	return 1;
 }

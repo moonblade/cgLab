@@ -13,12 +13,14 @@ public:
 };
 class Window{
 public:
+// top right and bottom left
     Point tr, bl;
     Window()
     {
         tr = Point(200,200);
         bl = Point(10,10);
     }
+    // draw red window
     void draw()
     {
         glColor3fv(red);
@@ -67,6 +69,7 @@ public:
         glEnd();
     }
 
+// draw line between given points
     void draw(float color[3], Point a, Point b)
     {
         glColor3fv(color);
@@ -81,6 +84,8 @@ public:
         clip(a,b);
     }
 
+// if both zero, take full, 
+// if & gives 0, clip both halves
     void clip(Point a, Point b)
     {
         if(w.outcode(a)==0 && w.outcode(b)==0) 
