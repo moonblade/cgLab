@@ -34,6 +34,19 @@ class Point{
             p = p.translate(about);
             return p;
         }
+        void circle(int radius, int spokeNo)
+        {
+            glBegin(GL_LINE_LOOP);
+            for(int i=0;i<360;++i)
+            {
+                float theta = 3.14*i/180;
+                Point p(x + radius*cos(theta), y + radius*sin(theta));
+                p.draw();
+                if((i+spokeNo)%30==0)
+                    draw();
+            }
+            glEnd();
+        }
         void print()
         {
             cout<<x<<" "<<y<<endl;
@@ -58,23 +71,13 @@ public:
         w[1] = Point(100,0);
 
     }
-
+    Point getCurPos(){
+        return body[1].translate(position);
+    }
     void drawWheel(Point p)
     {
-        glBegin(GL_LINE_STRIP);
-        for(int i=0;i<360;++i)
-        {
-            float theta = 3.14*i/180;
-            Point q(rad*cos(theta),rad*sin(theta));   
-            q = q.translate(position);
-            q = q.translate(p);
-            q = q.rotate(body[1].translate(position), rotation);
-            q.draw();
-            Point center = p.translate(position).rotate(body[1].translate(position), rotation);
-            if((i+position.x)%30==0)
-                center.draw();
-        }
-        glEnd();
+        Point q = p.translate(position).rotate(getCurPos(),rotation);
+        q.circle(rad, position.x);
     }
 
     void draw()
@@ -83,7 +86,7 @@ public:
         for(int i=0;i<body.size(); ++i)
         {
             Point q = body[i].translate(position);
-            q = q.rotate(body[1].translate(position), rotation);
+            q = q.rotate(getCurPos(), rotation);
             q.draw();
         }
         glEnd();
