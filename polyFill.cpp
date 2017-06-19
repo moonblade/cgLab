@@ -6,6 +6,7 @@
 using namespace std;
 #define w 300
 float boundary[]={1,0,0};
+float fillColor[]={1,0,0};
 float fillC[]={0,1,0};
 float blue[]={0,0,1};
 float black[]={1,1,1};
@@ -34,19 +35,6 @@ public:
     Point left(){return Point(x-1,y);}
     void print(){cout<<"x: "<<x<<", y: "<<y<<endl;}
 };
-class Set
-{
-public:
-    set<int> s;
-    void insert(Point a)
-    {
-        s.insert(a.toInt());
-    }
-    bool has(Point a)
-    {
-        return s.find(a.toInt())!=s.end();
-    }
-}s;
 class Polygon
 {
 public:
@@ -68,7 +56,11 @@ public:
 
     bool painted(Point p)
     {
-        glReadPixels(p.x, p.y, 1, 1, GL_RGB, GL_FLOAT,col);
+        // REMEMBER TO PUT -1, coz read pixel reads the right pixel, so to bring back to actual one
+        glReadPixels(p.x-1, p.y, 1, 1, GL_RGB, GL_FLOAT,col);
+        // IF !polygon color, or painting color   ->> floodfill
+        // IF boundary color, or painting color   ->> boundaryfill
+        //  (boundary fill part) (this part to avoid inf loop)
         if(same(col, boundary) || same(col, fillC))
             return true;
         return false;
@@ -97,16 +89,14 @@ public:
 
     void fill(Point p)
     {
-        if(s.has(p))
-            return;
-        s.insert(p);
         if(!painted(p))
         {
+            // Paint before recursion
+            paint(p);
             fill(p.up());
             fill(p.right());
             fill(p.down());
             fill(p.left());
-            paint(p);
         }
     }
 }p;
